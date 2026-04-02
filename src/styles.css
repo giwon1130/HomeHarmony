@@ -265,6 +265,64 @@ select {
   background: #fff4ec;
 }
 
+.recommendation-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fffaf0 0%, #ffffff 100%);
+}
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.recommendation-card {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(245, 158, 11, 0.16);
+}
+
+.recommendation-card span {
+  display: block;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.recommendation-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 28px;
+}
+
+.recommendation-card p {
+  margin: 8px 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.reason-box {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #fff7ed;
+}
+
+.reason-box h3 {
+  margin: 0 0 10px;
+}
+
+.reason-box ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #475569;
+}
+
 .lifestyle-map-card {
   margin-top: 18px;
   padding: 18px;
@@ -352,7 +410,7 @@ select {
 
 .insight-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-top: 18px;
 }
@@ -428,6 +486,7 @@ select {
   .candidate-grid,
   .compare-row,
   .detail-grid,
+  .recommendation-grid,
   .highlight-list,
   .insight-grid {
     grid-template-columns: 1fr;

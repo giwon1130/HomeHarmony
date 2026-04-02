@@ -5,6 +5,13 @@ import type { ApartmentCandidate, CommuteLevel } from "./types";
 
 type SortOption = "balance" | "price" | "transit" | "education";
 
+type ScoreProfile = {
+  total: number;
+  housingFit: number;
+  costFit: number;
+  familyFit: number;
+};
+
 function score(candidate: ApartmentCandidate): number {
   return Math.round(
     candidate.transitScore * 0.3 +
@@ -12,6 +19,31 @@ function score(candidate: ApartmentCandidate): number {
       candidate.educationScore * 0.2 +
       candidate.environmentScore * 0.25
   );
+}
+
+function scoreProfile(candidate: ApartmentCandidate, budget: number): ScoreProfile {
+  const total = score(candidate);
+  const housingFit = Math.round(
+    candidate.transitScore * 0.4 +
+      candidate.convenienceScore * 0.25 +
+      candidate.environmentScore * 0.35
+  );
+  const costFit = Math.max(
+    40,
+    Math.min(100, Math.round(100 - Math.max(0, candidate.price억 - budget) * 12 + (budget - candidate.price억) * 3))
+  );
+  const familyFit = Math.round(
+    candidate.educationScore * 0.45 +
+      candidate.environmentScore * 0.35 +
+      candidate.convenienceScore * 0.2
+  );
+
+  return {
+    total,
+    housingFit,
+    costFit,
+    familyFit
+  };
 }
 
 function commuteRank(level: CommuteLevel): number {
@@ -55,6 +87,32 @@ function scoreBreakdown(candidate: ApartmentCandidate): string {
   }
 
   return "가격, 생활권, 이동 시간을 균형 있게 비교할 가치가 있는 후보";
+}
+
+function recommendationReasons(candidate: ApartmentCandidate, budget: number): string[] {
+  const reasons: string[] = [];
+
+  if (candidate.transitScore >= 90) {
+    reasons.push("출퇴근 동선이 짧고 직주근접 관점에서 강점이 있다.");
+  }
+
+  if (candidate.educationScore >= 88 && candidate.environmentScore >= 88) {
+    reasons.push("학군과 주거 환경이 모두 안정적이라 가족형 수요에 유리하다.");
+  }
+
+  if (candidate.price억 <= budget - 2) {
+    reasons.push("현재 예산 대비 여유가 있어 자금 부담이 상대적으로 적다.");
+  }
+
+  if (candidate.convenienceScore >= 85) {
+    reasons.push("대형마트, 병원, 상권 접근성이 좋아 생활 편의가 높다.");
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("교통, 가격, 생활권이 극단적으로 치우치지 않아 비교 후보로 유지할 가치가 있다.");
+  }
+
+  return reasons.slice(0, 3);
 }
 
 function MapViewport({
@@ -127,6 +185,9 @@ export default function App() {
   const comparedCandidates = selectedIds
     .map((id) => apartments.find((candidate) => candidate.id === id))
     .filter((candidate): candidate is ApartmentCandidate => candidate != null);
+
+  const focusedScoreProfile = scoreProfile(focusedCandidate, budget);
+  const focusedReasons = recommendationReasons(focusedCandidate, budget);
 
   const averageBudget = Math.round(
     filteredCandidates.reduce((sum, candidate) => sum + candidate.price억, 0) /
@@ -332,6 +393,39 @@ export default function App() {
               </strong>
             </div>
           </div>
+          <div className="recommendation-panel">
+            <div className="section-heading compact">
+              <div>
+                <p className="eyebrow">Recommendation</p>
+                <h2>왜 이 후보를 볼 만한가</h2>
+              </div>
+            </div>
+            <div className="recommendation-grid">
+              <article className="recommendation-card">
+                <span>생활권 적합도</span>
+                <strong>{focusedScoreProfile.housingFit}점</strong>
+                <p>교통, 생활 편의, 주거 환경을 묶어 본 생활권 중심 점수</p>
+              </article>
+              <article className="recommendation-card">
+                <span>예산 적합도</span>
+                <strong>{focusedScoreProfile.costFit}점</strong>
+                <p>현재 설정한 예산 안에서 부담이 어느 정도인지 반영한 점수</p>
+              </article>
+              <article className="recommendation-card">
+                <span>가족형 적합도</span>
+                <strong>{focusedScoreProfile.familyFit}점</strong>
+                <p>교육, 환경, 생활 편의 기준으로 본 장기 거주 관점 점수</p>
+              </article>
+            </div>
+            <div className="reason-box">
+              <h3>추천 이유</h3>
+              <ul>
+                {focusedReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
           <div className="lifestyle-map-card">
             <div className="section-heading compact">
               <div>
@@ -453,6 +547,13 @@ export default function App() {
               {[...filteredCandidates].sort((a, b) => a.price억 - b.price억)[0]?.name ?? "-"}
             </strong>
             <p>예산 압박이 가장 적은 후보</p>
+          </article>
+          <article className="insight-card">
+            <span>가족형 추천</span>
+            <strong>
+              {[...filteredCandidates].sort((a, b) => scoreProfile(b, budget).familyFit - scoreProfile(a, budget).familyFit)[0]?.name ?? "-"}
+            </strong>
+            <p>교육과 쾌적성을 함께 보면 우선 검토할 후보</p>
           </article>
         </div>
       </section>
