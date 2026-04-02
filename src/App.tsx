@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 import { apartments } from "./data/apartments";
 import type { ApartmentCandidate, CommuteLevel } from "./types";
 
@@ -38,6 +39,40 @@ function lifestyleSummary(candidate: ApartmentCandidate): string {
   }
 
   return "생활권 균형이 좋아 비교 후보로 유지할 가치가 높은 선택지";
+}
+
+function scoreBreakdown(candidate: ApartmentCandidate): string {
+  if (candidate.transitScore >= 90 && candidate.convenienceScore >= 85) {
+    return "직주근접과 생활 편의가 모두 강한 도심형 선택지";
+  }
+
+  if (candidate.educationScore >= 88 && candidate.environmentScore >= 88) {
+    return "학군과 쾌적성을 함께 보는 가족형 선택지";
+  }
+
+  if (candidate.price억 <= 11 && candidate.environmentScore >= 85) {
+    return "예산 효율과 쾌적함을 동시에 노릴 수 있는 외곽형 선택지";
+  }
+
+  return "가격, 생활권, 이동 시간을 균형 있게 비교할 가치가 있는 후보";
+}
+
+function MapViewport({
+  latitude,
+  longitude
+}: {
+  latitude: number;
+  longitude: number;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.flyTo([latitude, longitude], Math.max(map.getZoom(), 12), {
+      duration: 0.8
+    });
+  }, [latitude, longitude, map]);
+
+  return null;
 }
 
 export default function App() {
@@ -301,32 +336,53 @@ export default function App() {
             <div className="section-heading compact">
               <div>
                 <p className="eyebrow">Lifestyle Map</p>
-                <h2>생활권 요약 맵</h2>
+                <h2>실제 생활권 지도</h2>
               </div>
             </div>
-            <div className="mock-map">
-              <div className="mock-map-grid" />
-              <div
-                className="map-pin home"
-                style={{
-                  left: `${35 + (focusedCandidate.transitScore - 60) * 0.7}%`,
-                  top: `${65 - (focusedCandidate.environmentScore - 60) * 0.5}%`
-                }}
+            <div className="map-shell">
+              <MapContainer
+                center={[focusedCandidate.latitude, focusedCandidate.longitude]}
+                zoom={12}
+                scrollWheelZoom={false}
+                className="leaflet-map"
               >
-                <span>{focusedCandidate.name}</span>
-              </div>
-              {focusedCandidate.nearbyHighlights.map((highlight, index) => (
-                <div
-                  key={highlight.label}
-                  className="map-pin poi"
-                  style={{
-                    left: `${18 + index * 24}%`,
-                    top: `${22 + (index % 2) * 28}%`
-                  }}
-                >
-                  <span>{highlight.label}</span>
-                </div>
-              ))}
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <MapViewport
+                  latitude={focusedCandidate.latitude}
+                  longitude={focusedCandidate.longitude}
+                />
+                {filteredCandidates.map((candidate) => {
+                  const isFocused = candidate.id === focusedCandidate.id;
+                  const isCompared = selectedIds.includes(candidate.id);
+                  return (
+                    <CircleMarker
+                      key={candidate.id}
+                      center={[candidate.latitude, candidate.longitude]}
+                      radius={isFocused ? 14 : isCompared ? 10 : 8}
+                      pathOptions={{
+                        color: isFocused ? "#9a3412" : isCompared ? "#2563eb" : "#475569",
+                        fillColor: isFocused ? "#fb923c" : isCompared ? "#60a5fa" : "#cbd5e1",
+                        fillOpacity: 0.9,
+                        weight: isFocused ? 3 : 2
+                      }}
+                      eventHandlers={{
+                        click: () => setFocusedId(candidate.id)
+                      }}
+                    >
+                      <Popup>
+                        <strong>{candidate.name}</strong>
+                        <br />
+                        {candidate.district}
+                        <br />
+                        {candidate.price억}억 · {candidate.commute}
+                      </Popup>
+                    </CircleMarker>
+                  );
+                })}
+              </MapContainer>
             </div>
             <div className="highlight-list">
               {focusedCandidate.nearbyHighlights.map((highlight) => (
@@ -335,6 +391,18 @@ export default function App() {
                   <strong>도보 {highlight.distanceMinutes}분</strong>
                 </article>
               ))}
+            </div>
+            <div className="map-caption-grid">
+              <article className="map-caption-card">
+                <span>선택 후보</span>
+                <strong>{focusedCandidate.name}</strong>
+                <p>{scoreBreakdown(focusedCandidate)}</p>
+              </article>
+              <article className="map-caption-card">
+                <span>지도 탐색 힌트</span>
+                <strong>비교 후보도 함께 표시</strong>
+                <p>주황색은 현재 선택 후보, 파란색은 비교 중인 후보를 의미한다.</p>
+              </article>
             </div>
           </div>
           <div className="point-box">
