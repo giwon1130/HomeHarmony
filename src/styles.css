@@ -103,6 +103,44 @@ select {
   padding: 24px;
 }
 
+.mode-section {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.mode-summary {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.mode-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mode-chip {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  color: #334155;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-chip.active {
+  background: #1f2937;
+  color: #ffffff;
+  border-color: #1f2937;
+}
+
 .filter-section label {
   display: grid;
   gap: 8px;
@@ -483,6 +521,7 @@ select {
   .hero-section,
   .content-grid,
   .filter-section,
+  .mode-section,
   .candidate-grid,
   .compare-row,
   .detail-grid,

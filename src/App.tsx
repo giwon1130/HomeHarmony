@@ -4,6 +4,7 @@ import { apartments } from "./data/apartments";
 import type { ApartmentCandidate, CommuteLevel } from "./types";
 
 type SortOption = "balance" | "price" | "transit" | "education";
+type RecommendationMode = "commuter" | "budget" | "family";
 
 type ScoreProfile = {
   total: number;
@@ -21,8 +22,43 @@ function score(candidate: ApartmentCandidate): number {
   );
 }
 
-function scoreProfile(candidate: ApartmentCandidate, budget: number): ScoreProfile {
-  const total = score(candidate);
+function weightedScore(candidate: ApartmentCandidate, mode: RecommendationMode): number {
+  if (mode === "commuter") {
+    return Math.round(
+      candidate.transitScore * 0.45 +
+        candidate.convenienceScore * 0.25 +
+        candidate.environmentScore * 0.15 +
+        candidate.educationScore * 0.15
+    );
+  }
+
+  if (mode === "budget") {
+    return Math.round(
+      candidate.environmentScore * 0.2 +
+        candidate.convenienceScore * 0.2 +
+        candidate.educationScore * 0.15 +
+        candidate.transitScore * 0.15
+    );
+  }
+
+  if (mode === "family") {
+    return Math.round(
+      candidate.educationScore * 0.4 +
+        candidate.environmentScore * 0.3 +
+        candidate.convenienceScore * 0.2 +
+        candidate.transitScore * 0.1
+    );
+  }
+
+  return score(candidate);
+}
+
+function scoreProfile(
+  candidate: ApartmentCandidate,
+  budget: number,
+  mode: RecommendationMode
+): ScoreProfile {
+  const total = weightedScore(candidate, mode);
   const housingFit = Math.round(
     candidate.transitScore * 0.4 +
       candidate.convenienceScore * 0.25 +
@@ -73,7 +109,19 @@ function lifestyleSummary(candidate: ApartmentCandidate): string {
   return "생활권 균형이 좋아 비교 후보로 유지할 가치가 높은 선택지";
 }
 
-function scoreBreakdown(candidate: ApartmentCandidate): string {
+function scoreBreakdown(candidate: ApartmentCandidate, mode: RecommendationMode): string {
+  if (mode === "commuter") {
+    return "출퇴근과 생활 편의를 우선하는 직주근접 중심 추천 결과";
+  }
+
+  if (mode === "budget") {
+    return "예산 부담과 생활 환경의 균형을 우선하는 추천 결과";
+  }
+
+  if (mode === "family") {
+    return "학군과 주거 환경을 함께 보는 가족형 추천 결과";
+  }
+
   if (candidate.transitScore >= 90 && candidate.convenienceScore >= 85) {
     return "직주근접과 생활 편의가 모두 강한 도심형 선택지";
   }
@@ -89,8 +137,51 @@ function scoreBreakdown(candidate: ApartmentCandidate): string {
   return "가격, 생활권, 이동 시간을 균형 있게 비교할 가치가 있는 후보";
 }
 
-function recommendationReasons(candidate: ApartmentCandidate, budget: number): string[] {
+function recommendationReasons(
+  candidate: ApartmentCandidate,
+  budget: number,
+  mode: RecommendationMode
+): string[] {
   const reasons: string[] = [];
+
+  if (mode === "commuter") {
+    if (candidate.transitScore >= 88) {
+      reasons.push("출퇴근 동선이 짧아 직주근접 관점에서 우선 검토할 만하다.");
+    }
+    if (candidate.convenienceScore >= 82) {
+      reasons.push("생활 편의시설 접근성이 좋아 평일 생활 동선이 안정적이다.");
+    }
+    if (reasons.length === 0) {
+      reasons.push("출퇴근과 생활 편의가 모두 평균 이상이라 직주근접 대안으로 유지할 가치가 있다.");
+    }
+    return reasons.slice(0, 3);
+  }
+
+  if (mode === "budget") {
+    if (candidate.price억 <= budget - 2) {
+      reasons.push("현재 예산 대비 여유가 있어 자금 부담을 낮추기 좋다.");
+    }
+    if (candidate.environmentScore >= 85) {
+      reasons.push("예산 효율만이 아니라 생활 환경도 충분히 확보할 수 있다.");
+    }
+    if (reasons.length === 0) {
+      reasons.push("예산 안에서 교통과 생활권이 과하게 무너지지 않는 균형형 선택지다.");
+    }
+    return reasons.slice(0, 3);
+  }
+
+  if (mode === "family") {
+    if (candidate.educationScore >= 88) {
+      reasons.push("학군 점수가 높아 장기 거주 관점에서 안정적이다.");
+    }
+    if (candidate.environmentScore >= 88) {
+      reasons.push("공원과 주거 환경이 좋아 가족형 생활 리듬과 잘 맞는다.");
+    }
+    if (reasons.length === 0) {
+      reasons.push("교육과 환경이 모두 평균 이상이라 가족형 후보로 비교할 가치가 있다.");
+    }
+    return reasons.slice(0, 3);
+  }
 
   if (candidate.transitScore >= 90) {
     reasons.push("출퇴근 동선이 짧고 직주근접 관점에서 강점이 있다.");
@@ -139,6 +230,7 @@ export default function App() {
   const [budget, setBudget] = useState(18);
   const [maxCommute, setMaxCommute] = useState<CommuteLevel>("대중교통 45분");
   const [sortOption, setSortOption] = useState<SortOption>("balance");
+  const [recommendationMode, setRecommendationMode] = useState<RecommendationMode>("commuter");
   const [selectedIds, setSelectedIds] = useState<string[]>(["mapo-river", "bundang-central"]);
   const [focusedId, setFocusedId] = useState<string>("mapo-river");
 
@@ -175,9 +267,9 @@ export default function App() {
           return right.educationScore - left.educationScore;
         }
 
-        return score(right) - score(left);
+        return weightedScore(right, recommendationMode) - weightedScore(left, recommendationMode);
       });
-  }, [budget, keyword, maxCommute, selectedDistrict, sortOption]);
+  }, [budget, keyword, maxCommute, recommendationMode, selectedDistrict, sortOption]);
 
   const focusedCandidate =
     apartments.find((candidate) => candidate.id === focusedId) ?? filteredCandidates[0] ?? apartments[0];
@@ -186,8 +278,8 @@ export default function App() {
     .map((id) => apartments.find((candidate) => candidate.id === id))
     .filter((candidate): candidate is ApartmentCandidate => candidate != null);
 
-  const focusedScoreProfile = scoreProfile(focusedCandidate, budget);
-  const focusedReasons = recommendationReasons(focusedCandidate, budget);
+  const focusedScoreProfile = scoreProfile(focusedCandidate, budget, recommendationMode);
+  const focusedReasons = recommendationReasons(focusedCandidate, budget, recommendationMode);
 
   const averageBudget = Math.round(
     filteredCandidates.reduce((sum, candidate) => sum + candidate.price억, 0) /
@@ -305,6 +397,48 @@ export default function App() {
         </label>
       </section>
 
+      <section className="mode-section">
+        <div className="section-heading compact">
+          <div>
+            <p className="eyebrow">Recommendation Mode</p>
+            <h2>추천 기준 선택</h2>
+          </div>
+          <p className="mode-summary">
+            현재 모드:{" "}
+            <strong>
+              {recommendationMode === "commuter"
+                ? "직주근접 우선"
+                : recommendationMode === "budget"
+                  ? "예산 우선"
+                  : "가족형 우선"}
+            </strong>
+          </p>
+        </div>
+        <div className="mode-chip-group">
+          <button
+            type="button"
+            className={recommendationMode === "commuter" ? "mode-chip active" : "mode-chip"}
+            onClick={() => setRecommendationMode("commuter")}
+          >
+            직주근접 우선
+          </button>
+          <button
+            type="button"
+            className={recommendationMode === "budget" ? "mode-chip active" : "mode-chip"}
+            onClick={() => setRecommendationMode("budget")}
+          >
+            예산 우선
+          </button>
+          <button
+            type="button"
+            className={recommendationMode === "family" ? "mode-chip active" : "mode-chip"}
+            onClick={() => setRecommendationMode("family")}
+          >
+            가족형 우선
+          </button>
+        </div>
+      </section>
+
       <section className="content-grid">
         <div className="candidate-grid">
           {filteredCandidates.map((candidate) => (
@@ -314,7 +448,7 @@ export default function App() {
                   <p className="candidate-district">{candidate.district}</p>
                   <h2>{candidate.name}</h2>
                 </div>
-                <span className="score-pill">{score(candidate)}점</span>
+                <span className="score-pill">{weightedScore(candidate, recommendationMode)}점</span>
               </div>
               <p className="candidate-summary">{candidate.summary}</p>
               <div className="candidate-meta">
@@ -384,8 +518,8 @@ export default function App() {
             </div>
             <div>
               <span>생활권 요약</span>
-              <strong>{lifestyleSummary(focusedCandidate)}</strong>
-            </div>
+                <strong>{lifestyleSummary(focusedCandidate)}</strong>
+              </div>
             <div>
               <span>좌표</span>
               <strong>
@@ -490,7 +624,7 @@ export default function App() {
               <article className="map-caption-card">
                 <span>선택 후보</span>
                 <strong>{focusedCandidate.name}</strong>
-                <p>{scoreBreakdown(focusedCandidate)}</p>
+                <p>{scoreBreakdown(focusedCandidate, recommendationMode)}</p>
               </article>
               <article className="map-caption-card">
                 <span>지도 탐색 힌트</span>
@@ -554,6 +688,19 @@ export default function App() {
               {[...filteredCandidates].sort((a, b) => scoreProfile(b, budget).familyFit - scoreProfile(a, budget).familyFit)[0]?.name ?? "-"}
             </strong>
             <p>교육과 쾌적성을 함께 보면 우선 검토할 후보</p>
+          </article>
+          <article className="insight-card">
+            <span>현재 모드 추천</span>
+            <strong>
+              {[...filteredCandidates].sort((a, b) => weightedScore(b, recommendationMode) - weightedScore(a, recommendationMode))[0]?.name ?? "-"}
+            </strong>
+            <p>
+              {recommendationMode === "commuter"
+                ? "직주근접 기준에서 가장 먼저 볼 후보"
+                : recommendationMode === "budget"
+                  ? "예산 효율 기준에서 가장 먼저 볼 후보"
+                  : "가족형 기준에서 가장 먼저 볼 후보"}
+            </p>
           </article>
         </div>
       </section>
