@@ -30,7 +30,8 @@ select {
 .filter-section,
 .candidate-card,
 .detail-panel,
-.compare-section {
+.compare-section,
+.insight-section {
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.84);
@@ -264,6 +265,122 @@ select {
   background: #fff4ec;
 }
 
+.lifestyle-map-card {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+}
+
+.mock-map {
+  position: relative;
+  overflow: hidden;
+  min-height: 240px;
+  margin-top: 12px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(191, 219, 254, 0.9), transparent 32%),
+    linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.mock-map-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.map-pin {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+.map-pin.home {
+  background: #1f2937;
+  color: white;
+}
+
+.map-pin.poi {
+  background: white;
+  color: #9a3412;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.highlight-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.highlight-card {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.highlight-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.highlight-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
+}
+
+.insight-section {
+  margin-top: 24px;
+  padding: 24px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.insight-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+}
+
+.insight-card span {
+  display: block;
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.insight-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+}
+
+.insight-card p {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
 .compare-section {
   margin-top: 24px;
   padding: 24px;
@@ -274,6 +391,10 @@ select {
   justify-content: space-between;
   gap: 12px;
   align-items: end;
+}
+
+.section-heading.compact {
+  margin-bottom: 14px;
 }
 
 .compare-table {
@@ -305,7 +426,9 @@ select {
   .filter-section,
   .candidate-grid,
   .compare-row,
-  .detail-grid {
+  .detail-grid,
+  .highlight-list,
+  .insight-grid {
     grid-template-columns: 1fr;
   }
 

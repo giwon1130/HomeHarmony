@@ -8,6 +8,8 @@ export interface ApartmentCandidate {
   monthlyFee만: number;
   size평: number;
   commute: CommuteLevel;
+  latitude: number;
+  longitude: number;
   transitScore: number;
   convenienceScore: number;
   educationScore: number;
@@ -15,4 +17,8 @@ export interface ApartmentCandidate {
   summary: string;
   strengths: string[];
   cautions: string[];
+  nearbyHighlights: Array<{
+    label: string;
+    distanceMinutes: number;
+  }>;
 }

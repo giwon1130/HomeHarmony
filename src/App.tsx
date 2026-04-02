@@ -24,6 +24,22 @@ function commuteRank(level: CommuteLevel): number {
   }
 }
 
+function lifestyleSummary(candidate: ApartmentCandidate): string {
+  if (candidate.environmentScore >= 90 && candidate.educationScore >= 85) {
+    return "가족형 장기 거주 관점에서 안정적인 생활권";
+  }
+
+  if (candidate.transitScore >= 90 && candidate.convenienceScore >= 88) {
+    return "직주근접과 생활 편의 중심의 도심형 생활권";
+  }
+
+  if (candidate.price억 <= 11) {
+    return "예산 효율과 생활 환경의 균형을 노리는 선택지";
+  }
+
+  return "생활권 균형이 좋아 비교 후보로 유지할 가치가 높은 선택지";
+}
+
 export default function App() {
   const [keyword, setKeyword] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("전체");
@@ -270,6 +286,56 @@ export default function App() {
               <span>출퇴근</span>
               <strong>{focusedCandidate.commute}</strong>
             </div>
+            <div>
+              <span>생활권 요약</span>
+              <strong>{lifestyleSummary(focusedCandidate)}</strong>
+            </div>
+            <div>
+              <span>좌표</span>
+              <strong>
+                {focusedCandidate.latitude.toFixed(3)}, {focusedCandidate.longitude.toFixed(3)}
+              </strong>
+            </div>
+          </div>
+          <div className="lifestyle-map-card">
+            <div className="section-heading compact">
+              <div>
+                <p className="eyebrow">Lifestyle Map</p>
+                <h2>생활권 요약 맵</h2>
+              </div>
+            </div>
+            <div className="mock-map">
+              <div className="mock-map-grid" />
+              <div
+                className="map-pin home"
+                style={{
+                  left: `${35 + (focusedCandidate.transitScore - 60) * 0.7}%`,
+                  top: `${65 - (focusedCandidate.environmentScore - 60) * 0.5}%`
+                }}
+              >
+                <span>{focusedCandidate.name}</span>
+              </div>
+              {focusedCandidate.nearbyHighlights.map((highlight, index) => (
+                <div
+                  key={highlight.label}
+                  className="map-pin poi"
+                  style={{
+                    left: `${18 + index * 24}%`,
+                    top: `${22 + (index % 2) * 28}%`
+                  }}
+                >
+                  <span>{highlight.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="highlight-list">
+              {focusedCandidate.nearbyHighlights.map((highlight) => (
+                <article key={highlight.label} className="highlight-card">
+                  <span>{highlight.label}</span>
+                  <strong>도보 {highlight.distanceMinutes}분</strong>
+                </article>
+              ))}
+            </div>
           </div>
           <div className="point-box">
             <h3>장점</h3>
@@ -288,6 +354,39 @@ export default function App() {
             </ul>
           </div>
         </aside>
+      </section>
+
+      <section className="insight-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Decision Lens</p>
+            <h2>생활권 관점 빠른 판단</h2>
+          </div>
+          <p>필터 결과 안에서 어떤 후보가 어떤 기준에 강한지 빠르게 비교한다.</p>
+        </div>
+        <div className="insight-grid">
+          <article className="insight-card">
+            <span>교통 최상위</span>
+            <strong>
+              {[...filteredCandidates].sort((a, b) => b.transitScore - a.transitScore)[0]?.name ?? "-"}
+            </strong>
+            <p>출퇴근과 직주근접이 가장 강한 후보</p>
+          </article>
+          <article className="insight-card">
+            <span>환경 최상위</span>
+            <strong>
+              {[...filteredCandidates].sort((a, b) => b.environmentScore - a.environmentScore)[0]?.name ?? "-"}
+            </strong>
+            <p>쾌적성과 공원 접근성이 가장 좋은 후보</p>
+          </article>
+          <article className="insight-card">
+            <span>가성비 최상위</span>
+            <strong>
+              {[...filteredCandidates].sort((a, b) => a.price억 - b.price억)[0]?.name ?? "-"}
+            </strong>
+            <p>예산 압박이 가장 적은 후보</p>
+          </article>
+        </div>
       </section>
 
       <section className="compare-section">
