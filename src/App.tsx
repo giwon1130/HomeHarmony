@@ -685,7 +685,7 @@ export default function App() {
           <article className="insight-card">
             <span>가족형 추천</span>
             <strong>
-              {[...filteredCandidates].sort((a, b) => scoreProfile(b, budget).familyFit - scoreProfile(a, budget).familyFit)[0]?.name ?? "-"}
+              {[...filteredCandidates].sort((a, b) => scoreProfile(b, budget, recommendationMode).familyFit - scoreProfile(a, budget, recommendationMode).familyFit)[0]?.name ?? "-"}
             </strong>
             <p>교육과 쾌적성을 함께 보면 우선 검토할 후보</p>
           </article>

@@ -48,6 +48,15 @@
 2. `npm run dev`
 3. `npm run build`
 
+## Docker
+```bash
+docker build -t home-harmony .
+docker run -p 4179:80 home-harmony
+```
+
+- 기본 정적 웹 포트: `http://localhost:4179`
+- 현재는 mock 데이터 기반 프론트엔드라 별도 API 컨테이너 없이 정적 서빙만으로 확인 가능하다.
+
 ## 앞으로 확장할 것
 - 실제 아파트 및 생활권 데이터 연동
 - 사용자 조건 저장 및 추천 기준 고도화
